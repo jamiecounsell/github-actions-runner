@@ -101,10 +101,15 @@ cleanup() {
     
     # Get a removal token (different from registration token)
     local removal_token
-    removal_token=$(get_token "$REMOVAL_API_URL" "removal" 2>/dev/null) || true
+    local get_token_exit_code=0
+    removal_token=$(get_token "$REMOVAL_API_URL" "removal" 2>&1) || get_token_exit_code=$?
     
-    if [ -n "$removal_token" ] && [ "$removal_token" != "null" ]; then
-        ./config.sh remove --token "$removal_token" || true
+    if [ $get_token_exit_code -ne 0 ]; then
+        echo "Warning: Failed to get removal token (exit code: $get_token_exit_code)"
+        echo "Details: $removal_token"
+        echo "Runner may need manual cleanup from GitHub UI"
+    elif [ -n "$removal_token" ] && [ "$removal_token" != "null" ]; then
+        ./config.sh remove --token "$removal_token" || echo "Warning: Runner removal command failed"
     else
         echo "Warning: Could not get removal token, runner may need manual cleanup"
     fi
@@ -116,6 +121,7 @@ trap cleanup SIGTERM SIGINT SIGQUIT
 
 # Run the runner
 ./run.sh &
+RUNNER_PID=$!
 
 # Wait for the runner process
-wait $!
+wait $RUNNER_PID

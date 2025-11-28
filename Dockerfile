@@ -33,8 +33,9 @@ RUN mkdir -p /home/runner/actions-runner \
 # Download and install GitHub Actions Runner
 WORKDIR /home/runner/actions-runner
 RUN ARCH=$(dpkg --print-architecture) \
-    && if [ "$ARCH" = "amd64" ]; then ARCH="x64"; fi \
-    && if [ "$ARCH" = "arm64" ]; then ARCH="arm64"; fi \
+    && if [ "$ARCH" = "amd64" ]; then ARCH="x64"; \
+    elif [ "$ARCH" = "arm64" ]; then ARCH="arm64"; \
+    else echo "Error: Unsupported architecture: $ARCH. Only amd64 and arm64 are supported." && exit 1; fi \
     && curl -o actions-runner-linux-${ARCH}-${RUNNER_VERSION}.tar.gz -L \
         https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${ARCH}-${RUNNER_VERSION}.tar.gz \
     && tar xzf actions-runner-linux-${ARCH}-${RUNNER_VERSION}.tar.gz \
