@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Starting GitHub Actions Runner"
 
-set -e
+#set -e
 
 # Validate required environment variables
 if [ -z "$GITHUB_URL" ]; then
