@@ -24,7 +24,7 @@ docker run -d --restart always \
 | `RUNNER_NAME` | No | Name for the runner (defaults to container hostname) |
 | `RUNNER_WORKDIR` | No | Working directory for the runner (defaults to `/home/runner/_work`) |
 | `RUNNER_LABELS` | No | Comma-separated labels for the runner (defaults to `self-hosted,docker`) |
-| `DOCKER_HOST` | No | Docker daemon socket to connect to. Use for TCP Docker sockets (e.g., `tcp://dockersocket:2375`). If not set, defaults to the mounted Unix socket. |
+| `DOCKER_HOST` | No | Docker daemon socket to connect to (e.g., `tcp://dockersocket:2375` for TCP, `unix:///var/run/docker.sock` for Unix socket). If not set, defaults to the mounted Unix socket. |
 | `DOCKER_TLS_VERIFY` | No | Enable TLS verification for Docker daemon connection. Set to `1` when using TLS-secured TCP connections. |
 
 ## Docker-in-Docker Support
@@ -75,8 +75,6 @@ docker run -d --restart always \
 Here's an example using [docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy) to expose the Docker socket over TCP:
 
 ```yaml
-version: '3.8'
-
 services:
   dockersocket:
     image: tecnativa/docker-socket-proxy
@@ -107,7 +105,7 @@ networks:
   runner-network:
 ```
 
-> **Note:** When using a TCP socket, ensure proper network security. The `docker-socket-proxy` limits which Docker API endpoints are accessible, providing an additional layer of security compared to exposing the full Docker socket.
+> **Security Warning:** When using a TCP socket without TLS encryption, ensure the Docker daemon is only accessible within a trusted network. Unencrypted TCP sockets expose the Docker API without authentication, which could allow unauthorized access to your Docker daemon. For production environments, always use TLS-secured connections (port 2376 with certificates) or ensure proper network isolation. The `docker-socket-proxy` limits which Docker API endpoints are accessible, providing an additional layer of security compared to exposing the full Docker socket.
 
 ## Pre-installed Software
 
