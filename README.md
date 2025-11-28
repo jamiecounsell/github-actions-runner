@@ -33,6 +33,16 @@ To allow the runner to execute Docker commands (e.g., for building Docker images
 -v /var/run/docker.sock:/var/run/docker.sock
 ```
 
+## Pre-installed Software
+
+This runner image includes the following tools:
+
+- **Node.js** and **npm** - JavaScript runtime and package manager
+- **Yarn** - Alternative JavaScript package manager
+- **Docker CLI** - For Docker-in-Docker workflows
+- **Git** - Version control
+- **curl**, **jq** - Common utilities
+
 ## Building Locally
 
 ```bash

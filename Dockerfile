@@ -21,6 +21,12 @@ RUN apt-get update \
     && apt-get install -y docker.io \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js and Yarn
+RUN apt-get update \
+    && apt-get install -y nodejs npm yarnpkg \
+    && ln -s /usr/bin/yarnpkg /usr/bin/yarn \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create runner user
 RUN useradd -m -s /bin/bash runner \
     && usermod -aG sudo runner \
