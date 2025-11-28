@@ -24,14 +24,90 @@ docker run -d --restart always \
 | `RUNNER_NAME` | No | Name for the runner (defaults to container hostname) |
 | `RUNNER_WORKDIR` | No | Working directory for the runner (defaults to `/home/runner/_work`) |
 | `RUNNER_LABELS` | No | Comma-separated labels for the runner (defaults to `self-hosted,docker`) |
+| `DOCKER_HOST` | No | Docker daemon socket to connect to. Use for TCP Docker sockets (e.g., `tcp://dockersocket:2375`). If not set, defaults to the mounted Unix socket. |
+| `DOCKER_TLS_VERIFY` | No | Enable TLS verification for Docker daemon connection. Set to `1` when using TLS-secured TCP connections. |
 
 ## Docker-in-Docker Support
 
-To allow the runner to execute Docker commands (e.g., for building Docker images in workflows), mount the Docker socket:
+To allow the runner to execute Docker commands (e.g., for building Docker images in workflows), you can either mount the Docker socket or connect to a remote Docker daemon via TCP.
+
+### Option 1: Mount the Docker Socket (Unix Socket)
+
+Mount the host's Docker socket directly into the container:
 
 ```bash
--v /var/run/docker.sock:/var/run/docker.sock
+docker run -d --restart always \
+  --name github-runner \
+  -e GITHUB_URL="https://github.com/YOUR_ORG/YOUR_REPO" \
+  -e GITHUB_TOKEN="YOUR_GITHUB_TOKEN" \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  ghcr.io/jamiecounsell/github-actions-runner
 ```
+
+### Option 2: TCP Docker Socket
+
+If you're running a Docker socket proxy (such as [docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy) or similar), you can connect to Docker via TCP by setting the `DOCKER_HOST` environment variable:
+
+```bash
+docker run -d --restart always \
+  --name github-runner \
+  -e GITHUB_URL="https://github.com/YOUR_ORG/YOUR_REPO" \
+  -e GITHUB_TOKEN="YOUR_GITHUB_TOKEN" \
+  -e DOCKER_HOST="tcp://dockersocket:2375" \
+  ghcr.io/jamiecounsell/github-actions-runner
+```
+
+For TLS-secured connections (recommended for production):
+
+```bash
+docker run -d --restart always \
+  --name github-runner \
+  -e GITHUB_URL="https://github.com/YOUR_ORG/YOUR_REPO" \
+  -e GITHUB_TOKEN="YOUR_GITHUB_TOKEN" \
+  -e DOCKER_HOST="tcp://dockersocket:2376" \
+  -e DOCKER_TLS_VERIFY="1" \
+  -v /path/to/certs:/etc/docker/certs.d \
+  ghcr.io/jamiecounsell/github-actions-runner
+```
+
+#### Docker Compose Example with TCP Socket Proxy
+
+Here's an example using [docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy) to expose the Docker socket over TCP:
+
+```yaml
+version: '3.8'
+
+services:
+  dockersocket:
+    image: tecnativa/docker-socket-proxy
+    environment:
+      - CONTAINERS=1
+      - IMAGES=1
+      - NETWORKS=1
+      - VOLUMES=1
+      - BUILD=1
+      - POST=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - runner-network
+
+  github-runner:
+    image: ghcr.io/jamiecounsell/github-actions-runner
+    environment:
+      - GITHUB_URL=https://github.com/YOUR_ORG/YOUR_REPO
+      - GITHUB_TOKEN=YOUR_GITHUB_TOKEN
+      - DOCKER_HOST=tcp://dockersocket:2375
+    depends_on:
+      - dockersocket
+    networks:
+      - runner-network
+
+networks:
+  runner-network:
+```
+
+> **Note:** When using a TCP socket, ensure proper network security. The `docker-socket-proxy` limits which Docker API endpoints are accessible, providing an additional layer of security compared to exposing the full Docker socket.
 
 ## Pre-installed Software
 
