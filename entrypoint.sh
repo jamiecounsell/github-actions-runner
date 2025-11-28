@@ -43,7 +43,7 @@ get_token() {
     local api_url="$1"
     local token_type="$2"
     
-    echo "Requesting ${token_type} token from: $api_url"
+    echo "Requesting ${token_type} token from: $api_url" >&2
     
     local response
     local http_code
@@ -59,8 +59,8 @@ get_token() {
     response=$(echo "$response" | sed '$d')
     
     if [ "$http_code" != "201" ]; then
-        echo "Error: GitHub API returned HTTP $http_code for ${token_type} token request"
-        echo "Response: $response"
+        echo "Error: GitHub API returned HTTP $http_code for ${token_type} token request" >&2
+        echo "Response: $response" >&2
         return 1
     fi
     
@@ -68,8 +68,8 @@ get_token() {
     token=$(echo "$response" | jq -r .token 2>/dev/null)
     
     if [ -z "$token" ] || [ "$token" = "null" ]; then
-        echo "Error: Failed to parse ${token_type} token from API response"
-        echo "Response: $response"
+        echo "Error: Failed to parse ${token_type} token from API response" >&2
+        echo "Response: $response" >&2
         return 1
     fi
     
