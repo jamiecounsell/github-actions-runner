@@ -1,4 +1,6 @@
 #!/bin/bash
+echo "Starting GitHub Actions Runner"
+
 set -e
 
 # Validate required environment variables
