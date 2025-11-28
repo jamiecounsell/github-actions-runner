@@ -17,13 +17,9 @@ RUN apt-get update && apt-get install -y \
 
 # Install Docker CLI (for Docker-in-Docker support via socket mount)
 # Using docker.io from Ubuntu repository for simplicity
+# Also install Node.js, npm, and Yarn for JavaScript/TypeScript workflows
 RUN apt-get update \
-    && apt-get install -y docker.io \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Node.js and Yarn
-RUN apt-get update \
-    && apt-get install -y nodejs npm yarnpkg \
+    && apt-get install -y docker.io nodejs npm yarnpkg \
     && ln -s /usr/bin/yarnpkg /usr/bin/yarn \
     && rm -rf /var/lib/apt/lists/*
 
